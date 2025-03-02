@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            margin: 50px;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+            transition: background 0.3s, color 0.3s;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            background: white;
+            color: black;
+            transition: background 0.3s, color 0.3s;
+        }
+        input, button {
+            margin: 10px;
+            padding: 12px;
+            width: 80%;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        input {
+            border: 1px solid #ccc;
+        }
+        button {
+            background: #2575fc;
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background: #6a11cb;
+        }
+        .progress-container {
+            width: 80%;
+            background: #ddd;
+            border-radius: 5px;
+            margin: 10px auto;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 20px;
+            background: green;
+            width: 0%;
+            border-radius: 5px;
+            transition: width 0.5s ease-in-out;
+        }
+        .dark-mode {
+            background: #1e1e1e;
+            color: white;
+        }
+        .dark-mode .container {
+            background: #2a2a2a;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+    <div class="container">
+        <h2>Attendance Calculator</h2>
+        <input type="text" id="subject" placeholder="Enter Subject">
+        <input type="number" id="total" placeholder="Total Classes" min="1">
+        <input type="number" id="attended" placeholder="Attended Classes" min="0">
+        <input type="number" id="goal" placeholder="Attendance Goal (%)" min="1" max="100" value="75">
+        <button onclick="calculateAttendance()">Calculate</button>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div id="result"></div>
+        <canvas id="attendanceChart"></canvas>
+    </div>
+    
+    <script>
+        function calculateAttendance() {
+            let total = parseInt(document.getElementById('total').value);
+            let attended = parseInt(document.getElementById('attended').value);
+            let goal = parseInt(document.getElementById('goal').value);
+            let resultDiv = document.getElementById('result');
+            let progressBar = document.getElementById('progress-bar');
+
+            if (isNaN(total) || isNaN(attended) || isNaN(goal) || total <= 0 || attended < 0 || attended > total || goal < 1 || goal > 100) {
+                resultDiv.innerHTML = "Please enter valid numbers!";
+                return;
+            }
+
+            let percentage = (attended / total) * 100;
+            let required = Math.ceil((goal * total - 100 * attended) / (100 - goal));
+            
+            let message = `Your Attendance: ${percentage.toFixed(2)}%<br>`;
+            
+            if (percentage < goal) {
+                message += `You need to attend ${required} more classes to reach ${goal}%.`;
+            } else {
+                message += `You have met your goal of ${goal}%.`;
+            }
+            
+            resultDiv.innerHTML = message;
+            progressBar.style.width = percentage + "%";
+            progressBar.style.background = percentage >= goal ? "green" : "red";
+            updateChart(attended, total - attended);
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark-mode");
+        }
+
+        function updateChart(attended, missed) {
+            let ctx = document.getElementById('attendanceChart').getContext('2d');
+            if (window.myChart) window.myChart.destroy();
+            window.myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Attended', 'Missed'],
+                    datasets: [{
+                        data: [attended, missed],
+                        backgroundColor: ['#2575fc', '#ff4b5c']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+    </script>
+</body>
+</html>
